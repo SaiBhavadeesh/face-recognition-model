@@ -1,25 +1,106 @@
-import logo from './logo.svg';
-import './App.css';
+import { Component } from "react";
+import Particles from "react-particles-js";
+import Signin from "./components/authentication/Signin";
+import Logo from "./components/logo/Logo";
+import Navigation from "./components/navigation/Navigation";
+import ImageLinkForm from "./components/imageLinkForm/ImageLinkForm";
+import FaceRecognition from "./components/faceRecognition/FaceRecognition";
+import Rank from "./components/rank/rank";
+import Clarifai from "clarifai";
+import "./App.css";
+import Signup from "./components/authentication/Signup";
+import key from "./key";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+var app = new Clarifai.App({
+  apiKey: key,
+});
+
+const particlesOptions = {
+  particles: {
+    number: {
+      value: 200,
+      density: {
+        enable: true,
+        value_area: 800,
+      },
+    },
+  },
+};
+
+class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      input: "",
+      imageUrl: "",
+      box: {},
+      route: "./Signin",
+      isSignedIn: false,
+    };
+  }
+
+  calculateFaceLocation = (data) => {
+    const faceData = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById("inputImage");
+    const width = Number(image.width);
+    const height = Number(image.height);
+    return {
+      left: faceData.left_col * width,
+      top: faceData.top_row * height,
+      right: width - faceData.right_col * width,
+      bottom: height - faceData.bottom_row * height,
+    };
+  };
+
+  setFaceBox = (box) => {
+    this.setState({ box: box });
+  };
+
+  onInputChange = (event) => {
+    this.setState({ input: event.target.value });
+  };
+
+  onButtonSubmit = () => {
+    this.setState({ imageUrl: this.state.input });
+    app.models
+      .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
+      .then((response) => this.setFaceBox(this.calculateFaceLocation(response)))
+      .catch((err) => console.log(err));
+  };
+
+  onRouteChange = (route) => {
+    route === "./Home"
+      ? this.setState({ route: route, isSignedIn: true })
+      : this.setState({ route: route, isSignedIn: false });
+  };
+
+  render() {
+    const { isSignedIn, imageUrl, route, box } = this.state;
+    return (
+      <div className="App">
+        <Particles className="particles" params={particlesOptions} />
+        <Navigation
+          onRouteChange={this.onRouteChange}
+          isSignedIn={isSignedIn}
+        />
+        {route === "./Signin" ? (
+          <Signin onRouteChange={this.onRouteChange} />
+        ) : route === "./Signup" ? (
+          <Signup onRouteChange={this.onRouteChange} />
+        ) : (
+          <div>
+            <Logo />
+            <Rank />
+            <ImageLinkForm
+              onInputChange={this.onInputChange}
+              onButtonSubmit={this.onButtonSubmit}
+            />
+            <FaceRecognition box={box} imageLink={imageUrl} />
+          </div>
+        )}
+      </div>
+    );
+  }
 }
 
 export default App;
