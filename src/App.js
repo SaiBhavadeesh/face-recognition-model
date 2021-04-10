@@ -36,7 +36,20 @@ class App extends Component {
       box: {},
       route: "./Signin",
       isSignedIn: false,
+      user: {
+        id: "",
+        name: "",
+        email: "",
+        entries: 0,
+        joined: "",
+      },
     };
+  }
+
+  componentDidMount() {
+    fetch("http://localhost:3000/")
+      .then((response) => response.json())
+      .then(console.log);
   }
 
   calculateFaceLocation = (data) => {
@@ -64,7 +77,24 @@ class App extends Component {
     this.setState({ imageUrl: this.state.input });
     app.models
       .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
-      .then((response) => this.setFaceBox(this.calculateFaceLocation(response)))
+      .then((response) => {
+        if (response) {
+          fetch("http://localhost:3000/image", {
+            method: "put",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: this.state.user.id,
+            }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              this.setState(
+                Object.assign(this.state.user, { entries: data })
+              );
+            });
+        }
+        this.setFaceBox(this.calculateFaceLocation(response));
+      })
       .catch((err) => console.log(err));
   };
 
@@ -74,8 +104,20 @@ class App extends Component {
       : this.setState({ route: route, isSignedIn: false });
   };
 
+  loadUser = (curUser) => {
+    this.setState({
+      user: {
+        id: curUser.id,
+        name: curUser.name,
+        email: curUser.email,
+        entries: curUser.entries,
+        joined: curUser.joined,
+      },
+    });
+  };
+
   render() {
-    const { isSignedIn, imageUrl, route, box } = this.state;
+    const { isSignedIn, imageUrl, route, box, user } = this.state;
     return (
       <div className="App">
         <Particles className="particles" params={particlesOptions} />
@@ -84,13 +126,13 @@ class App extends Component {
           isSignedIn={isSignedIn}
         />
         {route === "./Signin" ? (
-          <Signin onRouteChange={this.onRouteChange} />
+          <Signin onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
         ) : route === "./Signup" ? (
-          <Signup onRouteChange={this.onRouteChange} />
+          <Signup onRouteChange={this.onRouteChange} loadUser={this.loadUser} />
         ) : (
           <div>
             <Logo />
-            <Rank />
+            <Rank user={user} />
             <ImageLinkForm
               onInputChange={this.onInputChange}
               onButtonSubmit={this.onButtonSubmit}

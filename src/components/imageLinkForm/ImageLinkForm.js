@@ -1,11 +1,11 @@
 import "./ImageLinkForm.css";
 
-const ImageLinkForm = ({ onInputChange, onButtonSubmit }) => {
+const ImageLinkForm = ({ onInputChange, onButtonSubmit}) => {
   return (
     <div>
       <p className="f3 i b">
         {
-          "This web application will detect faces in your pictures using Machine Learning algorithm."
+          "This web application detects faces in your pictures using Machine Learning algorithm."
         }
       </p>
       <br></br>
