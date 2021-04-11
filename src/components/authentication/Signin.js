@@ -28,8 +28,9 @@ class Signin extends Component {
         if (typeof data === "object") {
           this.props.loadUser(data);
           this.props.onRouteChange("./Home");
-        } else window.alert("wrong email or password");
-      });
+        } else window.alert(data);
+      })
+      .catch(console.log);
   };
 
   render() {

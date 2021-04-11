@@ -46,7 +46,8 @@ class Signup extends Component {
             this.props.loadUser(res);
             this.props.onRouteChange("./Home");
           } else window.alert(res);
-        });
+        })
+        .catch(console.log);
     } else {
       window.alert("Passwords didnot match");
     }
