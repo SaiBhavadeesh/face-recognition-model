@@ -35,7 +35,7 @@ class Signup extends Component {
         email: userEmail,
         password: userPassword,
       });
-      fetch("http://localhost:3000/signup", {
+      fetch("https://obscure-depths-82125.herokuapp.com/signup", {
         method: "post",
         headers: { "Content-Type": "application/json" },
         body: data,
